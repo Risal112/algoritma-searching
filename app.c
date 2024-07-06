@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-// Fungsi binary search parallel
+//  binary search parallel
 int parallelBinarySearch(long long arr[], int n, long long target) {
     int index = -1;
 
@@ -23,7 +23,7 @@ int parallelBinarySearch(long long arr[], int n, long long target) {
             if (arr[middle] == target) {
                 #pragma omp critical
                 {
-                    if (index == -1) { // Hindari kondisi balapan
+                    if (index == -1) { 
                         index = middle;
                     }
                 }
@@ -40,8 +40,28 @@ int parallelBinarySearch(long long arr[], int n, long long target) {
     return index;
 }
 
+// Fungsi binary search serial
+int serialBinarySearch(long long arr[], int n, long long target) {
+    int left = 0;
+    int right = n - 1;
+
+    while (left <= right) {
+        int middle = left + (right - left) / 2;
+
+        if (arr[middle] == target) {
+            return middle;
+        } else if (arr[middle] < target) {
+            left = middle + 1;
+        } else {
+            right = middle - 1;
+        }
+    }
+
+    return -1;
+}
+// Jumlah elemen dalam array
 int main() {
-    int n = 25;  // Jumlah elemen dalam array
+    int n = 26;  
     long long arr[] = {
         105841103621,
         105841103721,
@@ -104,13 +124,33 @@ int main() {
     printf("Masukkan NIM kelas 6B yang ingin dicari: ");
     scanf("%lld", &target);
 
-    int index = parallelBinarySearch(arr, n, target);
+    // Menghitung waktu eksekusi serial
+    double start_time_serial = omp_get_wtime();
+    int index_serial = serialBinarySearch(arr, n, target);
+    double end_time_serial = omp_get_wtime();
+    double execution_time_serial = end_time_serial - start_time_serial;
 
-    if (index != -1) {
-        printf("NIM %lld milik %s ditemukan di indeks %d.\n", target, names[index], index);
+    if (index_serial != -1) {
+        printf("Serial: NIM %lld milik %s ditemukan di indeks %d.\n", target, names[index_serial], index_serial);
     } else {
-        printf("NIM %lld tidak ditemukan.\n", target);
+        printf("Serial: NIM %lld tidak ditemukan.\n", target);
     }
+
+    printf("Waktu eksekusi serial: %f detik\n", execution_time_serial);
+
+    // Menghitung waktu eksekusi paralel
+    double start_time_parallel = omp_get_wtime();
+    int index_parallel = parallelBinarySearch(arr, n, target);
+    double end_time_parallel = omp_get_wtime();
+    double execution_time_parallel = end_time_parallel - start_time_parallel;
+
+    if (index_parallel != -1) {
+        printf("Parallel: NIM %lld milik %s ditemukan di indeks %d.\n", target, names[index_parallel], index_parallel);
+    } else {
+        printf("Parallel: NIM %lld tidak ditemukan.\n", target);
+    }
+
+    printf("Waktu eksekusi paralel: %f detik\n", execution_time_parallel);
 
     return 0;
 }
